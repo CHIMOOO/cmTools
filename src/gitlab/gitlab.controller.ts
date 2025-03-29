@@ -12,11 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/role.enum';
-import { User } from '../auth/decorators/user.decorator';
+import { JwtAuthGuard, RolesGuard, Roles, Role, User } from '../auth';
 import { GitlabService } from './gitlab.service';
 import {
   CreateBranchDto,

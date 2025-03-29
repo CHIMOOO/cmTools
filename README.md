@@ -1,143 +1,121 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 项目描述
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[Nest](https://github.com/nestjs/nest) 框架 TypeScript 启动仓库。
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## 项目设置
 
 ```bash
 $ pnpm install
 ```
 
-## Compile and run the project
+## 编译和运行项目
 
 ```bash
-# development
+# 开发模式
 $ pnpm run start
 
-# watch mode
+# 监视模式
 $ pnpm run start:dev
 
-# production mode
+# 生产模式
 $ pnpm run start:prod
 ```
 
-## Run tests
+## 运行测试
 
 ```bash
-# unit tests
+# 单元测试
 $ pnpm run test
 
-# e2e tests
+# 端到端测试
 $ pnpm run test:e2e
 
-# test coverage
+# 测试覆盖率
 $ pnpm run test:cov
 ```
 
-## Deployment
+## 部署
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+当您准备将 NestJS 应用程序部署到生产环境时，可以采取一些关键步骤确保其以最高效的方式运行。查看[部署文档](https://docs.nestjs.com/deployment)获取更多信息。
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+如果您正在寻找基于云的平台部署 NestJS 应用程序，可以查看 [Mau](https://mau.nestjs.com)，这是我们在 AWS 上部署 NestJS 应用程序的官方平台。Mau 使部署变得简单快捷，只需几个简单步骤：
 
 ```bash
 $ pnpm install -g mau
 $ mau deploy
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+使用 Mau，您可以只需几次点击就能部署应用程序，这样您就可以专注于构建功能而不是管理基础设施。
 
-## Resources
+## 资源
 
-Check out a few resources that may come in handy when working with NestJS:
+以下是使用 NestJS 时可能派上用场的一些资源：
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- 访问 [NestJS 文档](https://docs.nestjs.com) 了解更多关于框架的信息。
+- 如有问题和支持，请访问我们的 [Discord 频道](https://discord.gg/G7Qnnhy)。
+- 要深入并获得更多实践经验，请查看我们的官方视频[课程](https://courses.nestjs.com/)。
+- 只需几次点击，借助 [NestJS Mau](https://mau.nestjs.com) 将应用程序部署到 AWS。
+- 使用 [NestJS Devtools](https://devtools.nestjs.com) 可视化应用程序图表并实时与 NestJS 应用程序交互。
+- 需要项目帮助（兼职到全职）？查看我们的官方[企业支持](https://enterprise.nestjs.com)。
+- 要保持更新，请在 [X](https://x.com/nestframework) 和 [LinkedIn](https://linkedin.com/company/nestjs) 上关注我们。
+- 寻找工作或有工作机会？查看我们的官方[招聘板](https://jobs.nestjs.com)。
 
-## Support
+## 支持
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Nest 是一个 MIT 许可的开源项目。它可以通过赞助商和令人惊叹的支持者的支持而成长。如果您想加入他们，请[在此处阅读更多信息](https://docs.nestjs.com/support)。
 
-## Stay in touch
+## 联系方式
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
+- 作者 - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- 网站 - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
+## 许可证
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Nest 是 [MIT 许可](https://github.com/nestjs/nest/blob/master/LICENSE)的。
 
-## Modules
+## 模块
 
-### GitLab Integration Module
+### GitLab 集成模块
 
-The GitLab integration module provides a way to interact with GitLab repositories directly from the application. This module allows users to perform various operations such as:
+GitLab 集成模块提供了直接从应用程序与 GitLab 仓库交互的方式。该模块允许用户执行各种操作，例如：
 
-- Viewing and managing branches
-- Committing files to repositories
-- Creating and accepting merge requests
-- Viewing operation logs
+- 查看和管理分支
+- 向仓库提交文件
+- 创建和接受合并请求
+- 查看操作日志
 
-#### Features
+#### 功能
 
-- **Branch Management**: Create, list, view, and delete branches
-- **File Operations**: Commit files to repositories and retrieve file content
-- **Merge Request Handling**: Create merge requests, list all requests, view details, and accept requests
-- **Logging**: Comprehensive logging of all GitLab-related operations
-- **Statistics**: View project statistics
+- **分支管理**：创建、列出、查看和删除分支
+- **文件操作**：向仓库提交文件并检索文件内容
+- **合并请求处理**：创建合并请求、列出所有请求、查看详情和接受请求
+- **日志记录**：全面记录所有 GitLab 相关操作
+- **统计数据**：查看项目统计信息
 
-#### API Endpoints
+#### API 端点
 
-| Method | Endpoint | Description |
+| 方法 | 端点 | 描述 |
 |--------|----------|-------------|
-| GET | `/gitlab/branches` | Get all branches |
-| GET | `/gitlab/branches/:name` | Get branch details |
-| POST | `/gitlab/branches` | Create a new branch |
-| DELETE | `/gitlab/branches` | Delete a branch |
-| POST | `/gitlab/commit` | Commit file to a repository |
-| GET | `/gitlab/files` | Get file content |
-| POST | `/gitlab/merge-requests` | Create a merge request |
-| GET | `/gitlab/merge-requests` | Get all merge requests |
-| GET | `/gitlab/merge-requests/:id` | Get merge request details |
-| POST | `/gitlab/merge-requests/:id/accept` | Accept a merge request |
-| GET | `/gitlab/logs` | Get operation logs |
-| GET | `/gitlab/stats` | Get project statistics |
+| GET | `/gitlab/branches` | 获取所有分支 |
+| GET | `/gitlab/branches/:name` | 获取分支详情 |
+| POST | `/gitlab/branches` | 创建新分支 |
+| DELETE | `/gitlab/branches` | 删除分支 |
+| POST | `/gitlab/commit` | 向仓库提交文件 |
+| GET | `/gitlab/files` | 获取文件内容 |
+| POST | `/gitlab/merge-requests` | 创建合并请求 |
+| GET | `/gitlab/merge-requests` | 获取所有合并请求 |
+| GET | `/gitlab/merge-requests/:id` | 获取合并请求详情 |
+| POST | `/gitlab/merge-requests/:id/accept` | 接受合并请求 |
+| GET | `/gitlab/logs` | 获取操作日志 |
+| GET | `/gitlab/stats` | 获取项目统计信息 |
 
-#### Configuration
+#### 配置
 
-GitLab integration requires the following configuration parameters:
+GitLab 集成需要以下配置参数：
 
-- `baseUrl`: GitLab server base URL
-- `token`: Personal access token with API permissions
-- `projectId`: ID or path of the target project
-- `defaultBranch`: Default branch to use for operations
+- `baseUrl`：GitLab 服务器基础 URL
+- `token`：具有 API 权限的个人访问令牌
+- `projectId`：目标项目的 ID 或路径
+- `defaultBranch`：用于操作的默认分支

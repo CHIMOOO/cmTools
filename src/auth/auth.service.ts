@@ -33,8 +33,15 @@ export class AuthService {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    // 生成 JWT
-    const payload = { sub: user.id, username: user.username };
+    // 提取用户角色
+    const roles = user.roles.map(role => role.name);
+
+    // 生成 JWT，包含角色信息
+    const payload = { 
+      sub: user.id, 
+      username: user.username,
+      roles: roles // 将角色信息放入 JWT 载荷
+    };
     const accessToken = this.jwtService.sign(payload);
 
     return {

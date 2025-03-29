@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,6 +23,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('无效的用户身份');
     }
-    return user;
+    
+    // 获取用户角色
+    const roles = await this.usersService.getUserRoles(user.id);
+    
+    // 返回包含角色的用户信息
+    return {
+      id: user.id,
+      username: user.username,
+      nickname: user.nickname,
+      roles: roles.map(role => role.name), // 提取角色名称
+    };
   }
 } 

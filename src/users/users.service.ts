@@ -143,4 +143,20 @@ export class UsersService {
 
     return new UserResponseDto(updatedUser);
   }
+
+  // 添加获取用户角色的方法
+  async getUserRoles(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return user.roles;
+  }
 } 
