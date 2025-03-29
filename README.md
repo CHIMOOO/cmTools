@@ -124,6 +124,31 @@ Nest 是 [MIT 许可](https://github.com/nestjs/nest/blob/master/LICENSE)的。
 
 ## 模块
 
+### 角色管理模块
+
+角色管理模块提供了用户角色的管理功能，包括角色的创建、查询、修改和删除，以及角色与用户、权限的关联管理。
+
+#### 功能
+
+- **角色管理**：创建、查询、修改和删除角色
+- **角色关联**：管理角色与用户、权限的关联关系
+- **权限分配**：为角色分配或移除权限
+- **用户分配**：为角色添加或移除用户
+
+#### API 端点
+
+| 方法 | 端点 | 描述 |
+|--------|----------|-------------|
+| GET | `/roles` | 获取所有角色 |
+| GET | `/roles/:id` | 获取角色详情 |
+| POST | `/roles` | 创建新角色 |
+| PATCH | `/roles/:id` | 更新角色信息 |
+| DELETE | `/roles/:id` | 删除角色 |
+| POST | `/roles/:roleId/permissions/:permissionId` | 添加权限到角色 |
+| DELETE | `/roles/:roleId/permissions/:permissionId` | 从角色移除权限 |
+| POST | `/roles/:roleId/users/:userId` | 将用户添加到角色 |
+| DELETE | `/roles/:roleId/users/:userId` | 从角色移除用户 |
+
 ### GitLab 集成模块
 
 GitLab 集成模块提供了直接从应用程序与 GitLab 仓库交互的方式。该模块允许用户执行各种操作，例如：
