@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, AuthResponseDto } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -8,6 +8,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nes
 
 @ApiTags('认证')
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -28,5 +29,18 @@ export class AuthController {
   @ApiResponse({ status: 401, description: '未授权' })
   getProfile(@User() user: UserResponseDto): UserResponseDto {
     return user;
+  }
+
+  @Get('roles')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户角色' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async getUserRoles(@User() user: any) {
+    return {
+      userId: user.id,
+      username: user.username,
+      roles: user.roles || []
+    };
   }
 } 

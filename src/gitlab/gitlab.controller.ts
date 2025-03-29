@@ -176,4 +176,30 @@ export class GitlabController {
   async getProjectStats(@User('id') userId: number): Promise<any> {
     return this.gitlabService.getProjectStats(userId);
   }
+
+  @Get('test')
+  @ApiOperation({ summary: '测试接口 - 不需要角色权限' })
+  @ApiResponse({ status: 200, description: '成功' })
+  async testEndpoint(@User('id') userId: number): Promise<any> {
+    return {
+      success: true,
+      message: '测试接口访问成功',
+      userId,
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  @Get('test-with-role')
+  @ApiOperation({ summary: '测试接口 - 需要角色权限' })
+  @ApiResponse({ status: 200, description: '成功' })
+  @Roles(Role.USER, Role.ADMIN)
+  async testWithRoleEndpoint(@User('id') userId: number): Promise<any> {
+    return {
+      success: true,
+      message: '带角色权限的测试接口访问成功',
+      userId,
+      roles: [Role.USER, Role.ADMIN],
+      timestamp: new Date().toISOString()
+    };
+  }
 } 

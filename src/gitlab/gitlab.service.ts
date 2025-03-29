@@ -85,7 +85,19 @@ export class GitlabService {
    */
   async getAllBranches(userId: number): Promise<BranchResponseDto[]> {
     try {
+      // 添加诊断日志
+      this.logger.log(`开始获取分支列表，用户ID: ${userId}`);
+      this.logger.log(`GitLab配置: ${JSON.stringify(this.gitlabConfig)}`);
+      
+      if (!this.gitlabClient) {
+        this.logger.error('GitLab客户端未初始化');
+        throw new BadRequestException('GitLab客户端配置错误');
+      }
+      
+      // 尝试获取分支
+      this.logger.log(`正在调用GitLab API获取分支列表...`);
       const branches = await this.gitlabClient.Branches.all(this.gitlabConfig.projectId);
+      this.logger.log(`成功获取到 ${branches.length} 个分支`);
       
       // 查询每个分支的创建者和最后修改者
       const branchesWithAuthors = await Promise.all(

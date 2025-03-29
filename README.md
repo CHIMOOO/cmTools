@@ -1,4 +1,3 @@
-
 ## 项目描述
 
 [Nest](https://github.com/nestjs/nest) 框架 TypeScript 启动仓库。
@@ -8,6 +7,53 @@
 ```bash
 $ pnpm install
 ```
+
+## 数据库初始化
+
+在新环境中部署项目时，需要执行以下步骤来初始化数据库：
+
+### 1. 确保环境变量配置正确
+
+检查 `.env` 文件中的数据库连接配置：
+
+```
+DATABASE_URL="mysql://root:aaa123@localhost:3306/panel_machine"
+
+# JWT配置
+JWT_SECRET="your-secret-key-here"
+JWT_EXPIRES_IN="1d"
+```
+
+### 2. 创建数据库架构
+
+```bash
+$ pnpm prisma migrate dev --name init
+```
+
+该命令将根据 `schema.prisma` 文件创建数据库表结构。
+
+### 3. 初始化基础数据
+
+```bash
+$ pnpm db:seed
+```
+
+执行该命令将：
+- 创建基本角色（admin, user）
+- 初始化 GitLab 相关权限
+- 创建管理员账户
+- 为用户分配默认角色
+
+### 4. 默认管理员账户
+
+系统会自动创建以下管理员账户：
+
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| chimoo | ****** | 超级管理员 |
+| admin | admin123 | 系统管理员 |
+
+这些账户拥有完整的系统管理权限，可以访问所有功能模块。
 
 ## 编译和运行项目
 
@@ -33,6 +79,7 @@ $ pnpm run test:e2e
 
 # 测试覆盖率
 $ pnpm run test:cov
+
 ```
 
 ## 部署

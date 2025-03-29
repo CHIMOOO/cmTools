@@ -8,6 +8,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { GitlabModule } from './gitlab/gitlab.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AppService } from './app.service';
     FilesModule,
     PermissionsModule,
     GitlabModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
