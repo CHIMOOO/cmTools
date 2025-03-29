@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { GitlabModule } from './gitlab/gitlab.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -18,6 +19,7 @@ import { AppService } from './app.service';
     AuthModule,
     FilesModule,
     PermissionsModule,
+    GitlabModule,
   ],
   controllers: [AppController],
   providers: [AppService],

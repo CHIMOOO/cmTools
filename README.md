@@ -96,3 +96,48 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Modules
+
+### GitLab Integration Module
+
+The GitLab integration module provides a way to interact with GitLab repositories directly from the application. This module allows users to perform various operations such as:
+
+- Viewing and managing branches
+- Committing files to repositories
+- Creating and accepting merge requests
+- Viewing operation logs
+
+#### Features
+
+- **Branch Management**: Create, list, view, and delete branches
+- **File Operations**: Commit files to repositories and retrieve file content
+- **Merge Request Handling**: Create merge requests, list all requests, view details, and accept requests
+- **Logging**: Comprehensive logging of all GitLab-related operations
+- **Statistics**: View project statistics
+
+#### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/gitlab/branches` | Get all branches |
+| GET | `/gitlab/branches/:name` | Get branch details |
+| POST | `/gitlab/branches` | Create a new branch |
+| DELETE | `/gitlab/branches` | Delete a branch |
+| POST | `/gitlab/commit` | Commit file to a repository |
+| GET | `/gitlab/files` | Get file content |
+| POST | `/gitlab/merge-requests` | Create a merge request |
+| GET | `/gitlab/merge-requests` | Get all merge requests |
+| GET | `/gitlab/merge-requests/:id` | Get merge request details |
+| POST | `/gitlab/merge-requests/:id/accept` | Accept a merge request |
+| GET | `/gitlab/logs` | Get operation logs |
+| GET | `/gitlab/stats` | Get project statistics |
+
+#### Configuration
+
+GitLab integration requires the following configuration parameters:
+
+- `baseUrl`: GitLab server base URL
+- `token`: Personal access token with API permissions
+- `projectId`: ID or path of the target project
+- `defaultBranch`: Default branch to use for operations

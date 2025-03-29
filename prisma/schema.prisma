@@ -25,6 +25,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   files     File[]
+  gitlabLogs GitlabOperationLog[]
   
   @@map("users")
 }
@@ -70,4 +71,22 @@ model File {
   updatedAt   DateTime @updatedAt @map("updated_at")
   
   @@map("files")
+}
+
+// GitLab操作日志模型
+model GitlabOperationLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  operation   String   // 操作类型（CREATE_BRANCH, COMMIT, DELETE_BRANCH等）
+  branchName  String?  @map("branch_name")
+  commitMessage String? @map("commit_message")
+  commitSha   String?  @map("commit_sha")
+  filePath    String?  @map("file_path")
+  status      String   // SUCCESS, FAILED
+  errorMessage String? @map("error_message")
+  metadata    String?  @db.Text // 存储其他相关元数据（JSON格式）
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("gitlab_operation_logs")
 }
