@@ -13,8 +13,16 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
 
-  // 允许跨域
-  app.enableCors();
+  // 允许跨域 - 增强配置
+  app.enableCors({
+    origin: true, // 允许所有来源，生产环境中应该指定具体的域名
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    exposedHeaders: 'Authorization',
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  });
 
   // Swagger 文档配置
   const config = new DocumentBuilder()
