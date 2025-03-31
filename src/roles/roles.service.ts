@@ -156,6 +156,41 @@ export class RolesService {
     return new RoleResponseDto(role);
   }
 
+  async addPermissionsToRole(roleId: number, permissionIds: number[]): Promise<RoleResponseDto> {
+    // 检查角色是否存在
+    await this.findOne(roleId);
+
+    // 检查所有权限是否存在
+    const permissions = await this.prisma.permission.findMany({
+      where: {
+        id: {
+          in: permissionIds,
+        },
+      },
+    });
+
+    if (permissions.length !== permissionIds.length) {
+      const foundIds = permissions.map(p => p.id);
+      const missingIds = permissionIds.filter(id => !foundIds.includes(id));
+      throw new NotFoundException(`以下权限ID不存在: ${missingIds.join(', ')}`);
+    }
+
+    // 批量添加权限到角色
+    const role = await this.prisma.role.update({
+      where: { id: roleId },
+      data: {
+        permissions: {
+          connect: permissionIds.map(id => ({ id })),
+        },
+      },
+      include: {
+        permissions: true,
+      },
+    });
+
+    return new RoleResponseDto(role);
+  }
+
   async removePermissionFromRole(roleId: number, permissionId: number): Promise<RoleResponseDto> {
     // 检查角色是否存在
     await this.findOne(roleId);

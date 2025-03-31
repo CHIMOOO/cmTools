@@ -9,9 +9,9 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { CreateRoleDto, UpdateRoleDto, RoleResponseDto } from './dto';
+import { CreateRoleDto, UpdateRoleDto, RoleResponseDto, AddPermissionsDto } from './dto';
 import { JwtAuthGuard, RolesGuard, Roles, Role } from '../auth';
 
 @ApiTags('角色管理')
@@ -74,7 +74,7 @@ export class RolesController {
   }
 
   @Post(':roleId/permissions/:permissionId')
-  @ApiOperation({ summary: '添加权限到角色' })
+  @ApiOperation({ summary: '添加单个权限到角色' })
   @ApiParam({ name: 'roleId', description: '角色ID' })
   @ApiParam({ name: 'permissionId', description: '权限ID' })
   @ApiResponse({ status: 200, description: '添加成功', type: RoleResponseDto })
@@ -85,6 +85,20 @@ export class RolesController {
     @Param('permissionId', ParseIntPipe) permissionId: number,
   ): Promise<RoleResponseDto> {
     return this.rolesService.addPermissionToRole(roleId, permissionId);
+  }
+
+  @Post(':roleId/permissions')
+  @ApiOperation({ summary: '批量添加权限到角色' })
+  @ApiParam({ name: 'roleId', description: '角色ID' })
+  @ApiBody({ type: AddPermissionsDto })
+  @ApiResponse({ status: 200, description: '批量添加成功', type: RoleResponseDto })
+  @ApiResponse({ status: 404, description: '角色或权限不存在' })
+  @Roles(Role.ADMIN)
+  async addPermissionsToRole(
+    @Param('roleId', ParseIntPipe) roleId: number,
+    @Body() addPermissionsDto: AddPermissionsDto,
+  ): Promise<RoleResponseDto> {
+    return this.rolesService.addPermissionsToRole(roleId, addPermissionsDto.permissionIds);
   }
 
   @Delete(':roleId/permissions/:permissionId')
