@@ -9,6 +9,7 @@ import { GitlabModule } from './gitlab/gitlab.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RolesModule } from './roles/roles.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RolesModule } from './roles/roles.module';
     PermissionsModule,
     GitlabModule,
     RolesModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],

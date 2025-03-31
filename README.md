@@ -191,3 +191,46 @@ GitLab 集成需要以下配置参数：
 - `token`：具有 API 权限的个人访问令牌
 - `projectId`：目标项目的 ID 或路径
 - `defaultBranch`：用于操作的默认分支
+
+## 开发调试
+
+### API 请求和响应日志
+
+系统内置了强大的日志拦截器，可以实时查看前端发送的请求数据和后端返回的响应数据。这对于API调试非常有用，特别是在开发阶段。
+
+日志功能包括：
+
+- **请求日志**：记录所有API请求的方法、URL和请求体
+- **响应日志**：记录所有API响应的状态码、响应时间和响应体
+- **错误日志**：记录所有API错误，包括错误码和详细错误信息
+
+日志示例：
+
+```
+[API] 🔶 请求 GET /roles
+[API] 🔷 响应 GET /roles 200 42ms
+[API] 📦 响应体:
+[
+  {
+    "id": 1,
+    "name": "admin",
+    "description": "系统管理员",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z",
+    "userCount": 2,
+    "permissionCount": 15
+  }
+]
+
+[API] 🔶 请求 POST /users
+[API] 📦 请求体:
+{
+  "username": "newuser",
+  "password": "password123",
+  "email": "user@example.com",
+  "nickname": "新用户"
+}
+[API] 🔷 响应 POST /users 201 105ms
+```
+
+这些日志在开发过程中会自动在控制台中显示，无需额外配置。
