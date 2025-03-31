@@ -28,8 +28,8 @@ export class RolesService {
       include: {
         _count: {
           select: {
-            users: true,
-            permissions: true,
+            userRoles: true,
+            rolePermissions: true,
           },
         },
       },
@@ -39,10 +39,8 @@ export class RolesService {
       const { _count, ...roleData } = role;
       return new RoleResponseDto({
         ...roleData,
-        // @ts-ignore - 添加额外信息
-        userCount: _count.users,
-        // @ts-ignore - 添加额外信息
-        permissionCount: _count.permissions,
+        userCount: _count.userRoles,
+        permissionCount: _count.rolePermissions,
       });
     });
   }
@@ -51,19 +49,27 @@ export class RolesService {
     const role = await this.prisma.role.findUnique({
       where: { id },
       include: {
-        users: {
-          select: {
-            id: true,
-            username: true,
-            nickname: true,
+        userRoles: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                nickname: true,
+              },
+            },
           },
         },
-        permissions: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            description: true,
+        rolePermissions: {
+          include: {
+            permission: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                description: true,
+              },
+            },
           },
         },
       },
@@ -73,7 +79,15 @@ export class RolesService {
       throw new NotFoundException(`ID为${id}的角色不存在`);
     }
 
-    return new RoleResponseDto(role);
+    // 转换为适合响应的格式
+    const users = role.userRoles.map(ur => ur.user);
+    const permissions = role.rolePermissions.map(rp => rp.permission);
+
+    return new RoleResponseDto({
+      ...role,
+      users,
+      permissions,
+    });
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto): Promise<RoleResponseDto> {
@@ -107,15 +121,11 @@ export class RolesService {
     await this.findOne(id);
 
     // 检查角色是否已被分配给用户
-    const usersWithRole = await this.prisma.user.count({
-      where: {
-        roles: {
-          some: {
-            id,
-          },
-        },
-      },
-    });
+    const userRolesCount = await this.prisma.$queryRaw`
+      SELECT COUNT(*) as count FROM user_roles WHERE role_id = ${id}
+    ` as [{ count: number }];
+    
+    const usersWithRole = Number(userRolesCount[0].count);
 
     if (usersWithRole > 0) {
       throw new ConflictException(`无法删除角色：该角色已分配给${usersWithRole}个用户`);
@@ -125,6 +135,57 @@ export class RolesService {
     await this.prisma.role.delete({
       where: { id },
     });
+  }
+
+  async addUserToRole(roleId: number, userId: number): Promise<RoleResponseDto> {
+    // 检查角色是否存在
+    await this.findOne(roleId);
+
+    // 检查用户是否存在
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`ID为${userId}的用户不存在`);
+    }
+
+    // 添加用户到角色
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO user_roles (user_id, role_id, created_at)
+        VALUES (${userId}, ${roleId}, NOW())
+      `;
+    } catch (error) {
+      // 如果是唯一约束错误（已存在的关联），则忽略
+      if (!error.message.includes('Duplicate entry')) {
+        throw error;
+      }
+    }
+
+    return this.findOne(roleId);
+  }
+
+  async removeUserFromRole(roleId: number, userId: number): Promise<RoleResponseDto> {
+    // 检查角色是否存在
+    await this.findOne(roleId);
+
+    // 检查用户是否存在
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`ID为${userId}的用户不存在`);
+    }
+
+    // 从角色中移除用户
+    await this.prisma.$executeRaw`
+      DELETE FROM user_roles 
+      WHERE user_id = ${userId} AND role_id = ${roleId}
+    `;
+
+    return this.findOne(roleId);
   }
 
   async addPermissionToRole(roleId: number, permissionId: number): Promise<RoleResponseDto> {
@@ -141,19 +202,19 @@ export class RolesService {
     }
 
     // 添加权限到角色
-    const role = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          connect: { id: permissionId },
-        },
-      },
-      include: {
-        permissions: true,
-      },
-    });
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO role_permissions (role_id, permission_id, created_at)
+        VALUES (${roleId}, ${permissionId}, NOW())
+      `;
+    } catch (error) {
+      // 如果是唯一约束错误（已存在的关联），则忽略
+      if (!error.message.includes('Duplicate entry')) {
+        throw error;
+      }
+    }
 
-    return new RoleResponseDto(role);
+    return this.findOne(roleId);
   }
 
   async addPermissionsToRole(roleId: number, permissionIds: number[]): Promise<RoleResponseDto> {
@@ -176,19 +237,23 @@ export class RolesService {
     }
 
     // 批量添加权限到角色
-    const role = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          connect: permissionIds.map(id => ({ id })),
-        },
-      },
-      include: {
-        permissions: true,
-      },
-    });
+    await Promise.all(
+      permissionIds.map(async (permissionId) => {
+        try {
+          await this.prisma.$executeRaw`
+            INSERT INTO role_permissions (role_id, permission_id, created_at)
+            VALUES (${roleId}, ${permissionId}, NOW())
+          `;
+        } catch (error) {
+          // 如果是唯一约束错误（已存在的关联），则忽略
+          if (!error.message.includes('Duplicate entry')) {
+            throw error;
+          }
+        }
+      })
+    );
 
-    return new RoleResponseDto(role);
+    return this.findOne(roleId);
   }
 
   async removePermissionFromRole(roleId: number, permissionId: number): Promise<RoleResponseDto> {
@@ -205,76 +270,11 @@ export class RolesService {
     }
 
     // 从角色中移除权限
-    const role = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          disconnect: { id: permissionId },
-        },
-      },
-      include: {
-        permissions: true,
-      },
-    });
+    await this.prisma.$executeRaw`
+      DELETE FROM role_permissions 
+      WHERE role_id = ${roleId} AND permission_id = ${permissionId}
+    `;
 
-    return new RoleResponseDto(role);
-  }
-
-  async addUserToRole(roleId: number, userId: number): Promise<RoleResponseDto> {
-    // 检查角色是否存在
-    await this.findOne(roleId);
-
-    // 检查用户是否存在
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`ID为${userId}的用户不存在`);
-    }
-
-    // 将用户添加到角色
-    const role = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        users: {
-          connect: { id: userId },
-        },
-      },
-      include: {
-        users: true,
-      },
-    });
-
-    return new RoleResponseDto(role);
-  }
-
-  async removeUserFromRole(roleId: number, userId: number): Promise<RoleResponseDto> {
-    // 检查角色是否存在
-    await this.findOne(roleId);
-
-    // 检查用户是否存在
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`ID为${userId}的用户不存在`);
-    }
-
-    // 从角色中移除用户
-    const role = await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        users: {
-          disconnect: { id: userId },
-        },
-      },
-      include: {
-        users: true,
-      },
-    });
-
-    return new RoleResponseDto(role);
+    return this.findOne(roleId);
   }
 }

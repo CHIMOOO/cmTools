@@ -76,51 +76,60 @@ export class PermissionsInitService implements OnModuleInit {
 
     // 为管理员分配所有GitLab权限
     if (admin) {
-      await this.prisma.role.update({
-        where: { id: admin.id },
-        data: {
-          permissions: {
-            connect: gitlabPermissions.map(p => ({ id: p.id }))
-          }
+      for (const permission of gitlabPermissions) {
+        try {
+          await this.prisma.$executeRaw`
+            INSERT INTO role_permissions (role_id, permission_id, created_at)
+            VALUES (${admin.id}, ${permission.id}, NOW())
+            ON DUPLICATE KEY UPDATE role_id = role_id
+          `;
+        } catch (error) {
+          this.logger.warn(`为admin角色分配权限 ${permission.code} 时出错: ${error.message}`);
         }
-      });
+      }
       this.logger.log(`已为admin角色分配 ${gitlabPermissions.length} 个GitLab权限`);
     }
 
     // 为普通用户分配除了删除分支外的所有GitLab权限
     if (user) {
       const userPermissions = gitlabPermissions.filter(p => p.code !== 'gitlab:branches:delete');
-      await this.prisma.role.update({
-        where: { id: user.id },
-        data: {
-          permissions: {
-            connect: userPermissions.map(p => ({ id: p.id }))
-          }
+      for (const permission of userPermissions) {
+        try {
+          await this.prisma.$executeRaw`
+            INSERT INTO role_permissions (role_id, permission_id, created_at)
+            VALUES (${user.id}, ${permission.id}, NOW())
+            ON DUPLICATE KEY UPDATE role_id = role_id
+          `;
+        } catch (error) {
+          this.logger.warn(`为user角色分配权限 ${permission.code} 时出错: ${error.message}`);
         }
-      });
+      }
       this.logger.log(`已为user角色分配 ${userPermissions.length} 个GitLab权限`);
     }
 
     // 为没有角色的用户分配user角色
     if (user) {
-      const usersWithoutRoles = await this.prisma.user.findMany({
-        where: {
-          roles: { none: {} }
-        }
-      });
+      // 查找没有角色关联的用户
+      const usersWithoutRoles = await this.prisma.$queryRaw`
+        SELECT u.id FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        WHERE ur.user_id IS NULL
+      ` as { id: number }[];
 
-      if (usersWithoutRoles.length > 0) {
-        for (const u of usersWithoutRoles) {
-          await this.prisma.user.update({
-            where: { id: u.id },
-            data: {
-              roles: {
-                connect: { id: user.id }
-              }
-            }
-          });
+      if (Array.isArray(usersWithoutRoles) && usersWithoutRoles.length > 0) {
+        let count = 0;
+        for (const userObj of usersWithoutRoles) {
+          try {
+            await this.prisma.$executeRaw`
+              INSERT INTO user_roles (user_id, role_id, created_at)
+              VALUES (${userObj.id}, ${user.id}, NOW())
+            `;
+            count++;
+          } catch (error) {
+            this.logger.warn(`为用户 ${userObj.id} 分配user角色时出错: ${error.message}`);
+          }
         }
-        this.logger.log(`已为 ${usersWithoutRoles.length} 个无角色用户分配user角色`);
+        this.logger.log(`已为 ${count} 个无角色用户分配user角色`);
       }
     }
   }

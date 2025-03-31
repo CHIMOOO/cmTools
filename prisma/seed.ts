@@ -99,25 +99,31 @@ async function linkRolePermissions() {
   }
   
   // 为管理员添加所有权限
-  await prisma.role.update({
-    where: { id: adminRole.id },
-    data: {
-      permissions: {
-        connect: allPermissions.map(p => ({ id: p.id }))
-      }
+  for (const permission of allPermissions) {
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO role_permissions (role_id, permission_id, created_at)
+        VALUES (${adminRole.id}, ${permission.id}, NOW())
+        ON DUPLICATE KEY UPDATE role_id = role_id
+      `;
+    } catch (error) {
+      console.log(`为管理员角色添加权限 ${permission.code} 时出错，可能已存在：`, error.message);
     }
-  });
+  }
   
   // 为普通用户添加除了删除分支外的所有权限
   const userPermissions = allPermissions.filter(p => p.code !== 'gitlab:branches:delete');
-  await prisma.role.update({
-    where: { id: userRole.id },
-    data: {
-      permissions: {
-        connect: userPermissions.map(p => ({ id: p.id }))
-      }
+  for (const permission of userPermissions) {
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO role_permissions (role_id, permission_id, created_at)
+        VALUES (${userRole.id}, ${permission.id}, NOW())
+        ON DUPLICATE KEY UPDATE role_id = role_id
+      `;
+    } catch (error) {
+      console.log(`为用户角色添加权限 ${permission.code} 时出错，可能已存在：`, error.message);
     }
-  });
+  }
   
   console.log('角色权限关联完成');
 }
@@ -141,17 +147,20 @@ async function createDefaultAdmin() {
     const hashedPassword = await bcrypt.hash('admin123', salt);
     
     // 创建管理员账户
-    await prisma.user.create({
+    const newAdmin = await prisma.user.create({
       data: {
         username: 'admin',
         password: hashedPassword,
         nickname: '系统管理员',
         isActive: true,
-        roles: {
-          connect: { id: adminRole.id }
-        }
       }
     });
+    
+    // 关联角色
+    await prisma.$executeRaw`
+      INSERT INTO user_roles (user_id, role_id, created_at)
+      VALUES (${newAdmin.id}, ${adminRole.id}, NOW())
+    `;
     
     console.log('已创建默认管理员账户：admin / admin123');
   } else {
@@ -178,17 +187,20 @@ async function createSuperAdmin(username: string, password: string, nickname: st
     const hashedPassword = await bcrypt.hash(password, salt);
     
     // 创建管理员账户
-    await prisma.user.create({
+    const newAdmin = await prisma.user.create({
       data: {
         username,
         password: hashedPassword,
         nickname,
         isActive: true,
-        roles: {
-          connect: { id: adminRole.id }
-        }
       }
     });
+    
+    // 关联角色
+    await prisma.$executeRaw`
+      INSERT INTO user_roles (user_id, role_id, created_at)
+      VALUES (${newAdmin.id}, ${adminRole.id}, NOW())
+    `;
     
     console.log(`已创建超级管理员账户：${username}`);
   } else {
@@ -207,33 +219,34 @@ async function assignDefaultRoles() {
     return;
   }
   
-  // 获取所有没有角色的用户
-  const usersWithoutRoles = await prisma.user.findMany({
-    where: {
-      roles: {
-        none: {}
-      }
-    }
-  });
+  // 查找没有角色关联的用户
+  const usersWithoutRoles = await prisma.$queryRaw`
+    SELECT u.id FROM users u
+    LEFT JOIN user_roles ur ON u.id = ur.user_id
+    WHERE ur.user_id IS NULL
+  ` as { id: number }[];
   
-  if (usersWithoutRoles.length === 0) {
+  if (Array.isArray(usersWithoutRoles) && usersWithoutRoles.length === 0) {
     console.log('所有用户已有角色分配');
     return;
   }
   
   // 为这些用户分配默认用户角色
-  for (const user of usersWithoutRoles) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        roles: {
-          connect: { id: userRole.id }
-        }
-      }
-    });
+  let count = 0;
+  for (const userObj of usersWithoutRoles) {
+    const userId = userObj.id;
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO user_roles (user_id, role_id, created_at)
+        VALUES (${userId}, ${userRole.id}, NOW())
+      `;
+      count++;
+    } catch (error) {
+      console.error(`为用户 ${userId} 分配角色时出错:`, error.message);
+    }
   }
   
-  console.log(`已为 ${usersWithoutRoles.length} 个用户分配默认角色`);
+  console.log(`已为 ${count} 个用户分配默认角色`);
 }
 
 main()

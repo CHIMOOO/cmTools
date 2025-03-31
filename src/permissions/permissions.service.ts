@@ -85,14 +85,17 @@ export class PermissionsService {
     }
 
     // 分配权限给角色
-    await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          connect: { id: permissionId },
-        },
-      },
-    });
+    try {
+      await this.prisma.$executeRaw`
+        INSERT INTO role_permissions (role_id, permission_id, created_at)
+        VALUES (${roleId}, ${permissionId}, NOW())
+      `;
+    } catch (error) {
+      // 如果是唯一约束错误（已存在的关联），则忽略
+      if (!error.message.includes('Duplicate entry')) {
+        throw error;
+      }
+    }
   }
 
   async removeFromRole(permissionId: number, roleId: number): Promise<void> {
@@ -109,13 +112,9 @@ export class PermissionsService {
     }
 
     // 从角色中移除权限
-    await this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          disconnect: { id: permissionId },
-        },
-      },
-    });
+    await this.prisma.$executeRaw`
+      DELETE FROM role_permissions 
+      WHERE role_id = ${roleId} AND permission_id = ${permissionId}
+    `;
   }
 } 

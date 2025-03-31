@@ -21,11 +21,11 @@ model User {
   nickname  String?
   avatar    String?
   isActive  Boolean  @default(true)
-  roles     Role[]   @relation("UserRoles")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   files     File[]
   gitlabLogs GitlabOperationLog[]
+  userRoles UserRole[] // 用户拥有的角色
   
   @@map("users")
 }
@@ -35,10 +35,10 @@ model Role {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String?
-  users       User[]     @relation("UserRoles")
-  permissions Permission[] @relation("RolePermissions")
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
+  userRoles   UserRole[] // 拥有此角色的用户
+  rolePermissions RolePermission[] // 角色拥有的权限
   
   @@map("roles")
 }
@@ -49,11 +49,35 @@ model Permission {
   name        String   @unique
   code        String   @unique
   description String?
-  roles       Role[]   @relation("RolePermissions")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  rolePermissions RolePermission[] // 拥有此权限的角色
   
   @@map("permissions")
+}
+
+// 用户-角色关联表
+model UserRole {
+  userId    Int      @map("user_id")
+  roleId    Int      @map("role_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// 角色-权限关联表
+model RolePermission {
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
 }
 
 // 文件模型

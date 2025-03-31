@@ -1,5 +1,20 @@
-import { Exclude, Expose } from 'class-transformer';
-import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { ApiProperty, ApiHideProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+// 简化的角色DTO
+class SimpleRoleDto {
+  @ApiProperty({ description: '角色ID', example: 1 })
+  id: number;
+
+  @ApiProperty({ description: '角色名称', example: 'admin' })
+  name: string;
+
+  @ApiPropertyOptional({ description: '角色描述', example: '系统管理员', nullable: true })
+  description?: string | null;
+
+  @ApiPropertyOptional({ description: '角色权限', type: 'array', example: [] })
+  permissions?: any[];
+}
 
 export class UserResponseDto {
   @ApiProperty({ description: '用户ID', example: 1 })
@@ -27,28 +42,19 @@ export class UserResponseDto {
   @ApiHideProperty()
   password: string;
 
-  @Expose()
   @ApiProperty({
     description: '用户角色',
+    type: [SimpleRoleDto],
     example: [{ id: 1, name: '管理员', description: '系统管理员' }]
   })
-  get roles() {
-    return this._roles?.map(role => ({
-      id: role.id,
-      name: role.name,
-      description: role.description
-    }));
-  }
+  @Type(() => SimpleRoleDto)
+  roles?: SimpleRoleDto[];
 
-  private _roles: any[];
+  // 隐藏内部关联字段
+  @Exclude()
+  userRoles?: any[];
 
-  constructor(partial: Partial<UserResponseDto> & { roles?: any[] }) {
-    const { roles, ...partialWithoutRoles } = partial;
-    
-    Object.assign(this, partialWithoutRoles);
-    
-    if (roles) {
-      this._roles = roles;
-    }
+  constructor(partial: Partial<UserResponseDto>) {
+    Object.assign(this, partial);
   }
 } 

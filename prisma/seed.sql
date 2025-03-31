@@ -36,33 +36,33 @@ SET @gitlab_logs_read_id = (SELECT id FROM permissions WHERE code = 'gitlab:logs
 SET @gitlab_stats_read_id = (SELECT id FROM permissions WHERE code = 'gitlab:stats:read');
 
 -- 为管理员角色添加所有GitLab权限
-INSERT INTO _RolePermissions (A, B) 
+INSERT INTO role_permissions (role_id, permission_id, created_at) 
 VALUES 
-(@admin_role_id, @gitlab_branches_read_id),
-(@admin_role_id, @gitlab_branches_create_id),
-(@admin_role_id, @gitlab_branches_delete_id),
-(@admin_role_id, @gitlab_files_commit_id),
-(@admin_role_id, @gitlab_files_read_id),
-(@admin_role_id, @gitlab_merge_manage_id),
-(@admin_role_id, @gitlab_logs_read_id),
-(@admin_role_id, @gitlab_stats_read_id)
-ON DUPLICATE KEY UPDATE A = VALUES(A);
+(@admin_role_id, @gitlab_branches_read_id, NOW()),
+(@admin_role_id, @gitlab_branches_create_id, NOW()),
+(@admin_role_id, @gitlab_branches_delete_id, NOW()),
+(@admin_role_id, @gitlab_files_commit_id, NOW()),
+(@admin_role_id, @gitlab_files_read_id, NOW()),
+(@admin_role_id, @gitlab_merge_manage_id, NOW()),
+(@admin_role_id, @gitlab_logs_read_id, NOW()),
+(@admin_role_id, @gitlab_stats_read_id, NOW())
+ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 
 -- 为普通用户角色添加基本GitLab权限
-INSERT INTO _RolePermissions (A, B) 
+INSERT INTO role_permissions (role_id, permission_id, created_at) 
 VALUES 
-(@user_role_id, @gitlab_branches_read_id),
-(@user_role_id, @gitlab_branches_create_id),
-(@user_role_id, @gitlab_files_commit_id),
-(@user_role_id, @gitlab_files_read_id),
-(@user_role_id, @gitlab_merge_manage_id),
-(@user_role_id, @gitlab_logs_read_id),
-(@user_role_id, @gitlab_stats_read_id)
-ON DUPLICATE KEY UPDATE A = VALUES(A);
+(@user_role_id, @gitlab_branches_read_id, NOW()),
+(@user_role_id, @gitlab_branches_create_id, NOW()),
+(@user_role_id, @gitlab_files_commit_id, NOW()),
+(@user_role_id, @gitlab_files_read_id, NOW()),
+(@user_role_id, @gitlab_merge_manage_id, NOW()),
+(@user_role_id, @gitlab_logs_read_id, NOW()),
+(@user_role_id, @gitlab_stats_read_id, NOW())
+ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
 
 -- 确保所有用户至少有一个角色（为没有角色的用户分配user角色）
-INSERT INTO _UserRoles (A, B)
-SELECT u.id, @user_role_id
+INSERT INTO user_roles (user_id, role_id, created_at)
+SELECT u.id, @user_role_id, NOW()
 FROM users u
-LEFT JOIN _UserRoles ur ON u.id = ur.A
-WHERE ur.A IS NULL; 
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+WHERE ur.user_id IS NULL; 
