@@ -52,14 +52,13 @@ async function initPermissions() {
   console.log('初始化权限...');
   
   const permissions = [
-    { name: 'GitLab查看分支', code: 'gitlab:branches:read', description: 'GitLab查看分支列表权限' },
-    { name: 'GitLab创建分支', code: 'gitlab:branches:create', description: 'GitLab创建分支权限' },
-    { name: 'GitLab删除分支', code: 'gitlab:branches:delete', description: 'GitLab删除分支权限' },
-    { name: 'GitLab提交文件', code: 'gitlab:files:commit', description: 'GitLab提交文件权限' },
-    { name: 'GitLab读取文件', code: 'gitlab:files:read', description: 'GitLab读取文件内容权限' },
-    { name: 'GitLab管理合并请求', code: 'gitlab:merge:manage', description: 'GitLab管理合并请求权限' },
-    { name: 'GitLab查看日志', code: 'gitlab:logs:read', description: 'GitLab查看操作日志权限' },
-    { name: 'GitLab查看统计', code: 'gitlab:stats:read', description: 'GitLab查看项目统计信息权限' }
+    { name: '用户管理', code: 'user:manage', description: '用户管理模块权限，包括用户创建、查询、修改和删除' },
+    { name: '角色管理', code: 'role:manage', description: '角色管理模块权限，包括角色创建、查询、修改和删除' },
+    { name: '权限配置', code: 'permission:manage', description: '权限配置模块权限，包括权限分配和查询' },
+    { name: '控制面板', code: 'dashboard:access', description: '控制面板访问权限，包括系统监控和统计信息查看' },
+    { name: 'IPC配置', code: 'ipc:manage', description: 'IPC配置模块权限，包括IPC配置的创建、修改和删除' },
+    { name: '面板机配置', code: 'panel:manage', description: '面板机配置模块权限，包括面板机配置的创建、修改和删除' },
+    { name: 'F8000配置', code: 'f8000:manage', description: 'F8000配置模块权限，包括F8000配置的创建、修改和删除' }
   ];
   
   for (const permission of permissions) {
@@ -89,14 +88,16 @@ async function linkRolePermissions() {
   }
   
   // 获取所有权限
-  const allPermissions = await prisma.permission.findMany({
-    where: { code: { startsWith: 'gitlab:' } }
-  });
+  const allPermissions = await prisma.permission.findMany();
   
   if (allPermissions.length === 0) {
-    console.error('未找到GitLab相关权限，无法完成关联');
+    console.error('未找到权限，无法完成关联');
     return;
   }
+  
+  // 清除现有权限关联
+  await prisma.$executeRaw`DELETE FROM role_permissions WHERE role_id = ${adminRole.id}`;
+  await prisma.$executeRaw`DELETE FROM role_permissions WHERE role_id = ${userRole.id}`;
   
   // 为管理员添加所有权限
   for (const permission of allPermissions) {
@@ -104,27 +105,29 @@ async function linkRolePermissions() {
       await prisma.$executeRaw`
         INSERT INTO role_permissions (role_id, permission_id, created_at)
         VALUES (${adminRole.id}, ${permission.id}, NOW())
-        ON DUPLICATE KEY UPDATE role_id = role_id
       `;
     } catch (error) {
-      console.log(`为管理员角色添加权限 ${permission.code} 时出错，可能已存在：`, error.message);
+      console.log(`为管理员角色添加权限 ${permission.code} 时出错：`, error.message);
     }
   }
   
-  // 为普通用户添加除了删除分支外的所有权限
-  const userPermissions = allPermissions.filter(p => p.code !== 'gitlab:branches:delete');
+  // 为普通用户添加部分权限
+  const userPermissionCodes = ['dashboard:access', 'ipc:manage', 'panel:manage', 'f8000:manage'];
+  const userPermissions = allPermissions.filter(p => userPermissionCodes.includes(p.code));
+  
   for (const permission of userPermissions) {
     try {
       await prisma.$executeRaw`
         INSERT INTO role_permissions (role_id, permission_id, created_at)
         VALUES (${userRole.id}, ${permission.id}, NOW())
-        ON DUPLICATE KEY UPDATE role_id = role_id
       `;
     } catch (error) {
-      console.log(`为用户角色添加权限 ${permission.code} 时出错，可能已存在：`, error.message);
+      console.log(`为用户角色添加权限 ${permission.code} 时出错：`, error.message);
     }
   }
   
+  console.log(`已为admin角色分配 ${allPermissions.length} 个权限`);
+  console.log(`已为user角色分配 ${userPermissions.length} 个权限`);
   console.log('角色权限关联完成');
 }
 

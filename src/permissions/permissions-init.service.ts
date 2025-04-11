@@ -9,25 +9,24 @@ export class PermissionsInitService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('正在初始化权限...');
-    await this.initializeGitlabPermissions();
+    await this.initializeModulePermissions();
     await this.assignDefaultRoles();
     this.logger.log('权限初始化完成');
   }
 
-  private async initializeGitlabPermissions() {
-    // GitLab权限定义
-    const gitlabPermissions = [
-      { name: 'GitLab查看分支', code: 'gitlab:branches:read', description: 'GitLab查看分支列表权限' },
-      { name: 'GitLab创建分支', code: 'gitlab:branches:create', description: 'GitLab创建分支权限' },
-      { name: 'GitLab删除分支', code: 'gitlab:branches:delete', description: 'GitLab删除分支权限' },
-      { name: 'GitLab提交文件', code: 'gitlab:files:commit', description: 'GitLab提交文件权限' },
-      { name: 'GitLab读取文件', code: 'gitlab:files:read', description: 'GitLab读取文件内容权限' },
-      { name: 'GitLab管理合并请求', code: 'gitlab:merge:manage', description: 'GitLab管理合并请求权限' },
-      { name: 'GitLab查看日志', code: 'gitlab:logs:read', description: 'GitLab查看操作日志权限' },
-      { name: 'GitLab查看统计', code: 'gitlab:stats:read', description: 'GitLab查看项目统计信息权限' }
+  private async initializeModulePermissions() {
+    // 模块级别权限定义
+    const modulePermissions = [
+      { name: '用户管理', code: 'user:manage', description: '用户管理模块权限，包括用户创建、查询、修改和删除' },
+      { name: '角色管理', code: 'role:manage', description: '角色管理模块权限，包括角色创建、查询、修改和删除' },
+      { name: '权限配置', code: 'permission:manage', description: '权限配置模块权限，包括权限分配和查询' },
+      { name: '控制面板', code: 'dashboard:access', description: '控制面板访问权限，包括系统监控和统计信息查看' },
+      { name: 'IPC配置', code: 'ipc:manage', description: 'IPC配置模块权限，包括IPC配置的创建、修改和删除' },
+      { name: '面板机配置', code: 'panel:manage', description: '面板机配置模块权限，包括面板机配置的创建、修改和删除' },
+      { name: 'F8000配置', code: 'f8000:manage', description: 'F8000配置模块权限，包括F8000配置的创建、修改和删除' },
     ];
 
-    for (const permission of gitlabPermissions) {
+    for (const permission of modulePermissions) {
       await this.prisma.permission.upsert({
         where: { code: permission.code },
         update: {
@@ -38,7 +37,7 @@ export class PermissionsInitService implements OnModuleInit {
       });
     }
 
-    this.logger.log(`已初始化 ${gitlabPermissions.length} 个GitLab权限`);
+    this.logger.log(`已初始化 ${modulePermissions.length} 个模块级别权限`);
   }
 
   private async assignDefaultRoles() {
@@ -64,47 +63,56 @@ export class PermissionsInitService implements OnModuleInit {
     const admin = await this.prisma.role.findUnique({ where: { name: 'admin' } });
     const user = await this.prisma.role.findUnique({ where: { name: 'user' } });
 
-    // 获取所有GitLab权限
-    const gitlabPermissions = await this.prisma.permission.findMany({
-      where: { code: { startsWith: 'gitlab:' } }
-    });
+    // 获取所有模块级别权限
+    const allPermissions = await this.prisma.permission.findMany();
 
-    if (gitlabPermissions.length === 0) {
-      this.logger.warn('未找到GitLab权限，无法分配角色权限');
+    if (allPermissions.length === 0) {
+      this.logger.warn('未找到任何权限，无法分配角色权限');
       return;
     }
 
-    // 为管理员分配所有GitLab权限
+    // 为管理员分配所有权限
     if (admin) {
-      for (const permission of gitlabPermissions) {
+      // 先清除原有权限
+      await this.prisma.$executeRaw`
+        DELETE FROM role_permissions WHERE role_id = ${admin.id}
+      `;
+      
+      for (const permission of allPermissions) {
         try {
           await this.prisma.$executeRaw`
             INSERT INTO role_permissions (role_id, permission_id, created_at)
             VALUES (${admin.id}, ${permission.id}, NOW())
-            ON DUPLICATE KEY UPDATE role_id = role_id
           `;
         } catch (error) {
           this.logger.warn(`为admin角色分配权限 ${permission.code} 时出错: ${error.message}`);
         }
       }
-      this.logger.log(`已为admin角色分配 ${gitlabPermissions.length} 个GitLab权限`);
+      this.logger.log(`已为admin角色分配 ${allPermissions.length} 个权限`);
     }
 
-    // 为普通用户分配除了删除分支外的所有GitLab权限
+    // 为普通用户分配有限的权限
     if (user) {
-      const userPermissions = gitlabPermissions.filter(p => p.code !== 'gitlab:branches:delete');
+      // 先清除原有权限
+      await this.prisma.$executeRaw`
+        DELETE FROM role_permissions WHERE role_id = ${user.id}
+      `;
+      
+      // 用户只有控制面板、IPC配置、面板机配置和F8000配置的权限
+      const userPermissionCodes = ['dashboard:access', 'ipc:manage', 'panel:manage', 'f8000:manage'];
+      const userPermissions = allPermissions.filter(p => userPermissionCodes.includes(p.code));
+      
       for (const permission of userPermissions) {
         try {
           await this.prisma.$executeRaw`
             INSERT INTO role_permissions (role_id, permission_id, created_at)
             VALUES (${user.id}, ${permission.id}, NOW())
-            ON DUPLICATE KEY UPDATE role_id = role_id
           `;
         } catch (error) {
           this.logger.warn(`为user角色分配权限 ${permission.code} 时出错: ${error.message}`);
         }
       }
-      this.logger.log(`已为user角色分配 ${userPermissions.length} 个GitLab权限`);
+      this.logger.log(`已为user角色分配 ${userPermissions.length} 个权限`);
     }
 
     // 为没有角色的用户分配user角色
